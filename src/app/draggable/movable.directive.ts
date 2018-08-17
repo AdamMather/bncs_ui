@@ -28,7 +28,9 @@ export class MovableDirective extends DraggableDirective {
 
   private startPosition: Position;
 
-  @Input('appMovableReset') reset = false;
+  @Input('isMovable') isMovable = true;
+  @Input('MovableReset') reset = false;
+
 
   private nodeId: string = '';
 
@@ -46,14 +48,19 @@ export class MovableDirective extends DraggableDirective {
       x: event.clientX - this.position.x,
       y: event.clientY - this.position.y
     }
+
+    // if (!this.isMovable) {
+    //   this.position = { x: 0, y: 0 };
+    // }
   }
 
   @HostListener('dragMove', ['$event'])
   onDragMove(event: PointerEvent) {
-    this.position.x = event.clientX - this.startPosition.x;
-    this.position.y = event.clientY - this.startPosition.y;
 
-    //console.log('X: ' + this.position.x + '\nY: ' + this.position.y);
+    if (this.isMovable) {
+      this.position.x = event.clientX - this.startPosition.x;
+      this.position.y = event.clientY - this.startPosition.y;
+    }
   }
 
   private centrePoint = function (axis: boolean, x: number, y: number, z: number): NodeCentrePosition {
@@ -109,7 +116,6 @@ export class MovableDirective extends DraggableDirective {
         node.leftCentre = this.centrePoint(false, viewRect.top, viewRect.bottom, viewRect.left);
         node.bottomCentre = this.centrePoint(true, viewRect.left, viewRect.right, viewRect.bottom);
         node.rightCentre = this.centrePoint(false, viewRect.top, viewRect.bottom, viewRect.right);
-        this.global.rightCentre = node.rightCentre;
       })
 
     } else {

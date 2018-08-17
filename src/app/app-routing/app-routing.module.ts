@@ -2,20 +2,22 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 
-import { FeatureComponent } from '../feature/feature.component';
+//Components
+import { StoreComponent } from './../store/store.component';
+
+// Resolve
+import { PortalResolve } from '../shared/resolve/portal.resolve.service';
 
 const routes: Routes = [
-  { path: '', component: FeatureComponent }
- ];
+  { path: '', component: StoreComponent, resolve: { portal: PortalResolve } }
+];
 
 @NgModule({
   imports: [
     CommonModule,
     RouterModule.forRoot(routes)
   ],
-  exports: [
-    RouterModule
-  ],
+  exports: [RouterModule],
   declarations: []
 })
 export class AppRoutingModule { }

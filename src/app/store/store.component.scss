@@ -18,25 +18,48 @@ a.skip:hover {
     overflow: visible; 
 }
 
-#goodCanvas1 {
-        position: relative;
-        border: 1px solid black;
-
-        width: 300px;
-        height: 150px;
-
+#bncs {
+    position: relative;
+    border: 1px solid black;
+    z-index: 0;
 }
 
-.box {
-    background: #bada55;
+div[id^="panel"] > div { 
+    display: inline;
+    background: transparent;
+    color: rgba(136, 20, 26, 0.541);
+  }
+
+  div[name="panel"] {
+
+    display: block;
+    width: 200px;
+    height: 300px;
+
+  }
+
+  .panel {
+    background: #b4d455;
     border: 1px solid black;
-    width: 100px;
-    height: 60px;
+    width: 300px;
+    height: 360px;
     display: inline-block;
+    z-index: 0;
 
     &.dragging {
         background: coral;
       }
+}
+
+.card {
+    background: #a555d4;
+    border: 1px solid black;
+    display: inline-block;
+    width: 100px;
+    height: 30px;
+
+    z-index: 0;
+    
 }
 
 .draggable {

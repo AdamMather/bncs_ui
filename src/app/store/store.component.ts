@@ -1,29 +1,35 @@
 import { Component, OnInit, ViewChild, Renderer } from '@angular/core';
+import { BrowserModule, DomSanitizer, SafeHtml, SafeStyle } from '@angular/platform-browser'
 import { AsyncPipe } from '@angular/common';
 import { NgForm, FormGroup, FormBuilder, FormArray } from '@angular/forms';
 
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Global } from './../core/global';
 import { NodeCentrePosition } from '../core/nodeCentrePosition.model';
 
+import { Panel } from '../core/panel.model';
+import { Card } from '../core/card.model';
+
 @Component({
-  selector: 'app-feature',
-  templateUrl: './feature.component.html',
-  styleUrls: ['./feature.component.scss']
+  selector: 'app-store',
+  templateUrl: './store.component.html',
+  styleUrls: ['./store.component.scss']
 })
 
-export class FeatureComponent implements OnInit {
+export class StoreComponent implements OnInit {
 
-  @ViewChild('myCanvas') canvas: any;
-  public myCanvas: HTMLCanvasElement;
-  public canvasElement: any;
-  public lastX: number;
-  public lastY: number;
+  public panels: Array<Panel>;
+  public cards = new Array<Card>();
+
+
+  @ViewChild('bncs') canvas: any;
 
   private objCoords: any = {};
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
+    private sanitizer: DomSanitizer,
     private global: Global,
     public renderer: Renderer
   ) { }
@@ -31,6 +37,9 @@ export class FeatureComponent implements OnInit {
   ngOnInit(): void {
 
     this.global.path = this.router.url;
+    this.panels = this.route.snapshot.data['portal'];
+    // *** check data is coming back
+    // console.log(this.panels);
 
   }
 
@@ -50,24 +59,25 @@ export class FeatureComponent implements OnInit {
 
   public coordinates(ev, flag) {
 
+    let coordX: number = ev.pageX;
+    let coordY: number = ev.pageY;
+
     if (flag) {
       // beginning of line
-      this.objCoords.startX = ev.clientX;
-      this.objCoords.startY = ev.clientY;
+      this.objCoords.startX = coordX;
+      this.objCoords.startY = coordY;
     } else {
       // end of line
-      this.objCoords.endX = ev.clientX;
-      this.objCoords.endY = ev.clientY;
+      this.objCoords.endX = coordX;
+      this.objCoords.endY = coordY;
     }
 
     if (this.objCoords.startX != null && this.objCoords.endX != null && this.objCoords.endX != null && this.objCoords.endY != null) {
 
-      //console.log('the object is complete:\nstartX: ' + this.objCoords.startX + '\nstartY: ' + this.objCoords.startY + '\nendX: ' + this.objCoords.endX + '\nendY: ' + this.objCoords.endY);
-
       // *** snap to nearest centrepoint
-      let arrCentrePoints: Array<NodeCentrePosition> = []; 
+      let arrCentrePoints: Array<NodeCentrePosition> = [];
 
-      // get perimiter centre points of node
+      // get perimeter centre points of node
       this.global.arrNode.map(node => {
         arrCentrePoints.push(node.topCentre);
         arrCentrePoints.push(node.leftCentre);
@@ -100,19 +110,21 @@ export class FeatureComponent implements OnInit {
 
       })
 
-      let startX = arrStartX.sort(function(a,b) { return a.diff - b.diff;})[0];
-      let startY = arrStartY.sort(function(a,b) { return a.diff - b.diff;})[0];
+      let startX = arrStartX.sort(function (a, b) { return a.diff - b.diff; })[0];
+      let startY = arrStartY.sort(function (a, b) { return a.diff - b.diff; })[0];
 
-      let endX = arrEndX.sort(function(a,b) { return a.diff - b.diff;})[0];
-      let endY = arrEndY.sort(function(a,b) { return a.diff - b.diff;})[0];
+      let endX = arrEndX.sort(function (a, b) { return a.diff - b.diff; })[0];
+      let endY = arrEndY.sort(function (a, b) { return a.diff - b.diff; })[0];
 
+      /*** un/comment to un/snapb connectors to nodes
       this.objCoords.startX = startX.pos;
       this.objCoords.startY = startY.pos;
 
       this.objCoords.endX = endX.pos;
       this.objCoords.endY = endY.pos;
+      */
 
-       // draw line
+      // draw line
       this.drawLine(this.objCoords);
       this.objCoords = {};
     }
@@ -121,7 +133,7 @@ export class FeatureComponent implements OnInit {
 
   private drawLine(obj): CanvasRenderingContext2D {
 
-    let context = this.draw2dCanvas('goodCanvas1');
+    let context = this.draw2dCanvas('bncs');
 
     context.beginPath();
     context.moveTo(obj.startX, obj.startY);
@@ -135,63 +147,42 @@ export class FeatureComponent implements OnInit {
     return context;
   }
 
-  // HANDLERS
+  add(index: number): void {
 
-  handleStart(ev) {
-
-    // get co-ordinates
-    this.lastX = ev.clientX;
-    this.lastY = ev.clientY;
-  }
-
-  handleMove(ev) {
-
-    // get co-ordinates
-    let ctx = this.canvasElement.getContext('2d');
-    let currentX = ev.clientX;
-    let currentY = ev.clientY;
-
-    //
-    ctx.beginPath();
-    ctx.moveTo(currentX, currentY);
-    ctx.lineTo(currentX, currentY);
-    ctx.closePath();
-
-    //
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 5;
-    ctx.stroke();
-
-    // get co-ordinates
-    this.lastX = currentX;
-    this.lastY = currentY;
-
-
+    this.panels[index].cards.push(new Card({ name: "new card", status: "#00ff00" }));
 
   }
 
-  handleEnd(ev) {
-    console.log('handleEnd event: ' + ev);
+  createPanelId(itemId: string): string {
+
+    return "panel-" + itemId;
   }
 
-  onDragStart(): void {
-    console.log('got drag start');
+  createCardId(itemId: string): string {
+
+    return "card-" + itemId;
   }
 
-  onDragMove(event: PointerEvent): void {
-    console.log(`got drag move ${Math.round(event.clientX)} ${Math.round(event.clientY)}`);
+  identifyElement(ev): void {
+    this.global.accessKey = ev.srcElement.accessKey;
+    console.log('you have clicked on ' + this.global.accessKey);
   }
 
-  onDragEnd(): void {
-    console.log('got drag end');
+  movePanel(): boolean {
+
+    return this.global.accessKey == 'panel' ? true : false;
+
   }
 
-  trappedBoxes = ['Trapped 1', 'Trapped 2'];
+  moveCard(): boolean {
 
-  add(): void {
+    return this.global.accessKey == 'card' ? true : false;
 
+}
 
-    this.trappedBoxes.push('New trapped');
-  }
+setStyle(value: string): SafeStyle {
+
+  return this.sanitizer.bypassSecurityTrustStyle('background: ' + value);
+}
 
 }
